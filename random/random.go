@@ -10,6 +10,7 @@ import (
 	mathrand "math/rand"
 
 	"github.com/Maximumsoft-Co-LTD/go-util/format"
+	"github.com/Maximumsoft-Co-LTD/go-util/slice"
 )
 
 // UniqueInts generates numberOfRandom unique random integers in [0, numberOfRange).
@@ -22,20 +23,11 @@ func UniqueInts(numberOfRandom int, numberOfRange int) []int {
 	result := make([]int, 0, numberOfRandom)
 	for len(result) < numberOfRandom {
 		n := mathrand.Intn(numberOfRange)
-		if !contains(result, n) {
+		if !slice.Contains(result, n) {
 			result = append(result, n)
 		}
 	}
 	return result
-}
-
-func contains(slice []int, num int) bool {
-	for _, v := range slice {
-		if v == num {
-			return true
-		}
-	}
-	return false
 }
 
 // String generates a random string of the specified length using alphanumeric characters.
