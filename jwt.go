@@ -1,5 +1,4 @@
-// Package jwt provides JWT token generation and validation using HS256.
-package jwt
+package goutil
 
 import (
 	"errors"
@@ -9,42 +8,42 @@ import (
 	gojwt "github.com/golang-jwt/jwt/v5"
 )
 
-// Service defines the interface for JWT operations.
-type Service interface {
+// JWTService defines the interface for JWT operations.
+type JWTService interface {
 	GenerateToken(username string, sessionID string, ttl time.Duration) (string, error)
 	ValidateToken(token string) (*gojwt.Token, error)
 }
 
-// CustomClaims holds the JWT payload fields.
-type CustomClaims struct {
+// JWTClaims holds the JWT payload fields.
+type JWTClaims struct {
 	Username  string `json:"username"`
 	SessionID string `json:"session_id"`
 	gojwt.RegisteredClaims
 }
 
-type service struct {
+type jwtService struct {
 	secretKey string
 	issuer    string
 }
 
-// NewService creates a new JWT Service with the given secret and issuer.
+// NewJWTService creates a new JWTService with the given secret and issuer.
 // Returns an error if secret is empty.
-func NewService(secret string, issuer string) (Service, error) {
+func NewJWTService(secret string, issuer string) (JWTService, error) {
 	if secret == "" {
 		return nil, errors.New("jwt secret must not be empty")
 	}
 	if issuer == "" {
 		issuer = "go-util"
 	}
-	return &service{
+	return &jwtService{
 		secretKey: secret,
 		issuer:    issuer,
 	}, nil
 }
 
-func (s *service) GenerateToken(username string, sessionID string, ttl time.Duration) (string, error) {
+func (s *jwtService) GenerateToken(username string, sessionID string, ttl time.Duration) (string, error) {
 	now := time.Now()
-	claims := &CustomClaims{
+	claims := &JWTClaims{
 		Username:  username,
 		SessionID: sessionID,
 		RegisteredClaims: gojwt.RegisteredClaims{
@@ -62,7 +61,7 @@ func (s *service) GenerateToken(username string, sessionID string, ttl time.Dura
 	return signed, nil
 }
 
-func (s *service) ValidateToken(encodedToken string) (*gojwt.Token, error) {
+func (s *jwtService) ValidateToken(encodedToken string) (*gojwt.Token, error) {
 	return gojwt.Parse(encodedToken, func(token *gojwt.Token) (interface{}, error) {
 		if _, valid := token.Method.(*gojwt.SigningMethodHMAC); !valid {
 			return nil, fmt.Errorf("unexpected signing method: %s", token.Header["alg"])

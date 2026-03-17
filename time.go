@@ -1,32 +1,23 @@
-// Package timex provides time truncation and formatting helpers.
-package timex
+package goutil
 
 import (
 	"fmt"
 	"time"
-
-	"github.com/nleeper/goment"
 )
 
 // LayoutISO is the standard ISO datetime format for time.Format / time.Parse.
 const LayoutISO = "2006-01-02 15:04:05"
 
-// StartOfDay returns the start of the current day in UTC using goment.
-func StartOfDay() (time.Time, error) {
-	goDate, err := goment.New()
-	if err != nil {
-		return time.Time{}, fmt.Errorf("creating goment instance: %w", err)
-	}
-	return goDate.StartOf("day").UTC().ToTime(), nil
+// StartOfDay returns the start of the current day (00:00:00) in UTC.
+func StartOfDay() time.Time {
+	now := time.Now().UTC()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 }
 
-// EndOfDay returns the end of the current day in UTC using goment.
-func EndOfDay() (time.Time, error) {
-	goDate, err := goment.New()
-	if err != nil {
-		return time.Time{}, fmt.Errorf("creating goment instance: %w", err)
-	}
-	return goDate.EndOf("day").UTC().ToTime(), nil
+// EndOfDay returns the end of the current day (23:59:59.999999999) in UTC.
+func EndOfDay() time.Time {
+	now := time.Now().UTC()
+	return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 999_999_999, time.UTC)
 }
 
 // TruncateDate returns 00:00 of the specified day-of-month relative to the given time.
@@ -58,13 +49,9 @@ func TruncateWeek(now time.Time, day int) time.Time {
 	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local).AddDate(0, 0, -daysToSubtract)
 }
 
-// FormatDateTimeString formats a time.Time to LayoutISO string.
-func FormatDateTimeString(t time.Time) (string, error) {
-	dateNow, err := goment.New(t.Local().String(), "YYYY-MM-DD HH:mm:ss")
-	if err != nil {
-		return "", fmt.Errorf("parsing time with goment: %w", err)
-	}
-	return dateNow.ToTime().Format(LayoutISO), nil
+// FormatDateTimeString formats a time.Time to LayoutISO string in local timezone.
+func FormatDateTimeString(t time.Time) string {
+	return t.Local().Format(LayoutISO)
 }
 
 // Bod returns the beginning of day in UTC (17:00 UTC = 00:00 ICT).

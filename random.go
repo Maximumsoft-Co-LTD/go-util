@@ -1,5 +1,4 @@
-// Package random provides random number/string generation and hashing helpers.
-package random
+package goutil
 
 import (
 	"crypto/md5"
@@ -8,9 +7,6 @@ import (
 	"fmt"
 	"math/big"
 	mathrand "math/rand"
-
-	"github.com/Maximumsoft-Co-LTD/go-util/format"
-	"github.com/Maximumsoft-Co-LTD/go-util/slice"
 )
 
 // UniqueInts generates numberOfRandom unique random integers in [0, numberOfRange).
@@ -23,15 +19,15 @@ func UniqueInts(numberOfRandom int, numberOfRange int) []int {
 	result := make([]int, 0, numberOfRandom)
 	for len(result) < numberOfRandom {
 		n := mathrand.Intn(numberOfRange)
-		if !slice.Contains(result, n) {
+		if !Contains(result, n) {
 			result = append(result, n)
 		}
 	}
 	return result
 }
 
-// String generates a random string of the specified length using alphanumeric characters.
-func String(length int) (string, error) {
+// RandString generates a random string of the specified length using alphanumeric characters.
+func RandString(length int) (string, error) {
 	const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	result := make([]byte, length)
 	for i := range result {
@@ -59,14 +55,14 @@ func HashSHA1(input string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-// Decimal generates a random decimal in [0.01, 1.0) with the given precision digits.
+// RandDecimal generates a random decimal in [0.01, 1.0) with the given precision digits.
 // maxAttempts limits the retry loop to prevent hangs.
-func Decimal(precision int, maxAttempts int) (float64, error) {
+func RandDecimal(precision int, maxAttempts int) (float64, error) {
 	if maxAttempts <= 0 {
 		maxAttempts = 1000
 	}
 	for i := 0; i < maxAttempts; i++ {
-		decimal := format.ToFixed(mathrand.Float64(), precision)
+		decimal := ToFixed(mathrand.Float64(), precision)
 		if decimal >= 0.01 && decimal < 1 {
 			return decimal, nil
 		}

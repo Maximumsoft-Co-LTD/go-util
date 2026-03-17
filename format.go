@@ -1,5 +1,4 @@
-// Package format provides number formatting helpers.
-package format
+package goutil
 
 import "math"
 

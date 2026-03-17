@@ -1,5 +1,4 @@
-// Package mapx provides generic helper functions for working with maps.
-package mapx
+package goutil
 
 // Keys returns all keys from a map.
 func Keys[K comparable, V any](m map[K]V) []K {
@@ -81,8 +80,8 @@ func MapKeys[K comparable, V any, J comparable](m map[K]V, iteratee func(K) J) m
 	return result
 }
 
-// Filter returns a new map containing only entries that satisfy the predicate.
-func Filter[K comparable, V any](m map[K]V, predicate func(K, V) bool) map[K]V {
+// FilterMap returns a new map containing only entries that satisfy the predicate.
+func FilterMap[K comparable, V any](m map[K]V, predicate func(K, V) bool) map[K]V {
 	result := make(map[K]V)
 	for k, v := range m {
 		if predicate(k, v) {
@@ -92,8 +91,8 @@ func Filter[K comparable, V any](m map[K]V, predicate func(K, V) bool) map[K]V {
 	return result
 }
 
-// ForEach iterates over a map and invokes the function for each entry.
-func ForEach[K comparable, V any](m map[K]V, iteratee func(K, V)) {
+// ForEachMap iterates over a map and invokes the function for each entry.
+func ForEachMap[K comparable, V any](m map[K]V, iteratee func(K, V)) {
 	for k, v := range m {
 		iteratee(k, v)
 	}

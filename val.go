@@ -1,5 +1,4 @@
-// Package val provides value-checking and nil-safety helpers.
-package val
+package goutil
 
 import "reflect"
 
@@ -25,20 +24,12 @@ func IsNotNil(v any) bool {
 }
 
 // Empty returns the zero value of type T.
-//
-//	val.Empty[string]()  // ""
-//	val.Empty[int]()     // 0
-//	val.Empty[*User]()   // nil
 func Empty[T any]() T {
 	var zero T
 	return zero
 }
 
 // IsEmpty returns true if the value equals the zero value of its type.
-//
-//	val.IsEmpty("")    // true
-//	val.IsEmpty(0)     // true
-//	val.IsEmpty("hi")  // false
 func IsEmpty[T comparable](v T) bool {
 	var zero T
 	return v == zero

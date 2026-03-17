@@ -1,5 +1,4 @@
-// Package slice provides generic helper functions for working with slices.
-package slice
+package goutil
 
 import (
 	"cmp"
@@ -118,268 +117,6 @@ func IndexOf[T comparable](collection []T, element T) int {
 	return -1
 }
 
-// Unique returns a new slice with duplicates removed, preserving order.
-func Unique[T comparable](collection []T) []T {
-	seen := make(map[T]struct{}, len(collection))
-	result := make([]T, 0, len(collection))
-	for _, v := range collection {
-		if _, exists := seen[v]; !exists {
-			seen[v] = struct{}{}
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
-// UniqueBy returns a unique slice using a key function to determine equality.
-func UniqueBy[T any, K comparable](collection []T, keyFn func(T) K) []T {
-	seen := make(map[K]struct{}, len(collection))
-	result := make([]T, 0, len(collection))
-	for _, v := range collection {
-		key := keyFn(v)
-		if _, exists := seen[key]; !exists {
-			seen[key] = struct{}{}
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
-// GroupBy groups elements by a key returned from the keyFn.
-func GroupBy[T any, K comparable](collection []T, keyFn func(T) K) map[K][]T {
-	result := make(map[K][]T)
-	for _, v := range collection {
-		key := keyFn(v)
-		result[key] = append(result[key], v)
-	}
-	return result
-}
-
-// Chunk splits a slice into chunks of the specified size.
-func Chunk[T any](collection []T, size int) [][]T {
-	if size <= 0 {
-		return nil
-	}
-	chunks := make([][]T, 0, (len(collection)+size-1)/size)
-	for i := 0; i < len(collection); i += size {
-		end := i + size
-		if end > len(collection) {
-			end = len(collection)
-		}
-		chunks = append(chunks, collection[i:end])
-	}
-	return chunks
-}
-
-// Flatten merges a slice of slices into a single slice.
-func Flatten[T any](collections [][]T) []T {
-	total := 0
-	for _, s := range collections {
-		total += len(s)
-	}
-	result := make([]T, 0, total)
-	for _, s := range collections {
-		result = append(result, s...)
-	}
-	return result
-}
-
-// Compact removes zero-value elements from a slice.
-func Compact[T comparable](collection []T) []T {
-	var zero T
-	result := make([]T, 0, len(collection))
-	for _, v := range collection {
-		if v != zero {
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
-// First returns the first element and true, or zero value and false if empty.
-func First[T any](collection []T) (T, bool) {
-	if len(collection) == 0 {
-		var zero T
-		return zero, false
-	}
-	return collection[0], true
-}
-
-// Last returns the last element and true, or zero value and false if empty.
-func Last[T any](collection []T) (T, bool) {
-	if len(collection) == 0 {
-		var zero T
-		return zero, false
-	}
-	return collection[len(collection)-1], true
-}
-
-// Reverse returns a new slice with elements in reverse order.
-func Reverse[T any](collection []T) []T {
-	result := make([]T, len(collection))
-	for i, v := range collection {
-		result[len(collection)-1-i] = v
-	}
-	return result
-}
-
-// Count returns the number of elements equal to the given value.
-func Count[T comparable](collection []T, value T) int {
-	count := 0
-	for _, v := range collection {
-		if v == value {
-			count++
-		}
-	}
-	return count
-}
-
-// CountBy returns the number of elements matching the predicate.
-func CountBy[T any](collection []T, predicate func(T) bool) int {
-	count := 0
-	for _, v := range collection {
-		if predicate(v) {
-			count++
-		}
-	}
-	return count
-}
-
-// Every returns true if all elements match the predicate.
-func Every[T any](collection []T, predicate func(T) bool) bool {
-	for _, v := range collection {
-		if !predicate(v) {
-			return false
-		}
-	}
-	return true
-}
-
-// Some returns true if at least one element matches the predicate.
-func Some[T any](collection []T, predicate func(T) bool) bool {
-	for _, v := range collection {
-		if predicate(v) {
-			return true
-		}
-	}
-	return false
-}
-
-// None returns true if no element matches the predicate.
-func None[T any](collection []T, predicate func(T) bool) bool {
-	for _, v := range collection {
-		if predicate(v) {
-			return false
-		}
-	}
-	return true
-}
-
-// Without returns a slice excluding the specified values.
-func Without[T comparable](collection []T, exclude ...T) []T {
-	excludeSet := make(map[T]struct{}, len(exclude))
-	for _, v := range exclude {
-		excludeSet[v] = struct{}{}
-	}
-	result := make([]T, 0, len(collection))
-	for _, v := range collection {
-		if _, skip := excludeSet[v]; !skip {
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
-// KeyBy transforms a slice into a map using the given key function.
-// If duplicate keys exist, the last value wins.
-func KeyBy[T any, K comparable](collection []T, keyFn func(T) K) map[K]T {
-	result := make(map[K]T, len(collection))
-	for _, v := range collection {
-		result[keyFn(v)] = v
-	}
-	return result
-}
-
-// Intersect returns elements that exist in both slices.
-//
-//	slice.Intersect([]int{1, 2, 3}, []int{2, 3, 4}) // [2, 3]
-func Intersect[T comparable](list1 []T, list2 []T) []T {
-	set := make(map[T]struct{}, len(list2))
-	for _, v := range list2 {
-		set[v] = struct{}{}
-	}
-	result := make([]T, 0)
-	for _, v := range list1 {
-		if _, exists := set[v]; exists {
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
-// Difference returns elements in list1 that are NOT in list2.
-//
-//	slice.Difference([]int{1, 2, 3}, []int{2, 3, 4}) // [1]
-func Difference[T comparable](list1 []T, list2 []T) []T {
-	set := make(map[T]struct{}, len(list2))
-	for _, v := range list2 {
-		set[v] = struct{}{}
-	}
-	result := make([]T, 0)
-	for _, v := range list1 {
-		if _, exists := set[v]; !exists {
-			result = append(result, v)
-		}
-	}
-	return result
-}
-
-// Union returns all unique elements from both slices.
-//
-//	slice.Union([]int{1, 2, 3}, []int{2, 3, 4}) // [1, 2, 3, 4]
-func Union[T comparable](lists ...[]T) []T {
-	seen := make(map[T]struct{})
-	result := make([]T, 0)
-	for _, list := range lists {
-		for _, v := range list {
-			if _, exists := seen[v]; !exists {
-				seen[v] = struct{}{}
-				result = append(result, v)
-			}
-		}
-	}
-	return result
-}
-
-// FlatMap applies iteratee to each element and flattens the result.
-//
-//	slice.FlatMap([]int{1, 2}, func(n int) []int { return []int{n, n*10} })
-//	// [1, 10, 2, 20]
-func FlatMap[T any, U any](collection []T, iteratee func(T) []U) []U {
-	result := make([]U, 0)
-	for _, v := range collection {
-		result = append(result, iteratee(v)...)
-	}
-	return result
-}
-
-// Partition splits a slice into two: elements matching the predicate,
-// and elements that don't.
-//
-//	pass, fail := slice.Partition(nums, func(n int) bool { return n > 3 })
-func Partition[T any](collection []T, predicate func(T) bool) (matched []T, unmatched []T) {
-	matched = make([]T, 0)
-	unmatched = make([]T, 0)
-	for _, v := range collection {
-		if predicate(v) {
-			matched = append(matched, v)
-		} else {
-			unmatched = append(unmatched, v)
-		}
-	}
-	return matched, unmatched
-}
-
 // LastIndexOf returns the index of the last occurrence of element, or -1 if not found.
 func LastIndexOf[T comparable](collection []T, element T) int {
 	for i := len(collection) - 1; i >= 0; i-- {
@@ -414,8 +151,6 @@ func FindOrElse[T any](collection []T, fallback T, predicate func(T) bool) T {
 }
 
 // FindUniques returns elements that appear exactly once in the collection.
-//
-//	slice.FindUniques([]int{1, 2, 2, 3, 3, 4}) // [1, 4]
 func FindUniques[T comparable](collection []T) []T {
 	counts := make(map[T]int, len(collection))
 	for _, v := range collection {
@@ -446,8 +181,6 @@ func FindUniquesBy[T any, K comparable](collection []T, keyFn func(T) K) []T {
 }
 
 // FindDuplicates returns one copy of each element that appears more than once.
-//
-//	slice.FindDuplicates([]int{1, 2, 2, 3, 3, 4}) // [2, 3]
 func FindDuplicates[T comparable](collection []T) []T {
 	counts := make(map[T]int, len(collection))
 	for _, v := range collection {
@@ -486,6 +219,209 @@ func FindDuplicatesBy[T any, K comparable](collection []T, keyFn func(T) K) []T 
 	return result
 }
 
+// Unique returns a new slice with duplicates removed, preserving order.
+func Unique[T comparable](collection []T) []T {
+	seen := make(map[T]struct{}, len(collection))
+	result := make([]T, 0, len(collection))
+	for _, v := range collection {
+		if _, exists := seen[v]; !exists {
+			seen[v] = struct{}{}
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// UniqueBy returns a unique slice using a key function to determine equality.
+func UniqueBy[T any, K comparable](collection []T, keyFn func(T) K) []T {
+	seen := make(map[K]struct{}, len(collection))
+	result := make([]T, 0, len(collection))
+	for _, v := range collection {
+		key := keyFn(v)
+		if _, exists := seen[key]; !exists {
+			seen[key] = struct{}{}
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// GroupBy groups elements by a key returned from the keyFn.
+func GroupBy[T any, K comparable](collection []T, keyFn func(T) K) map[K][]T {
+	result := make(map[K][]T)
+	for _, v := range collection {
+		key := keyFn(v)
+		result[key] = append(result[key], v)
+	}
+	return result
+}
+
+// KeyBy transforms a slice into a map using the given key function.
+// If duplicate keys exist, the last value wins.
+func KeyBy[T any, K comparable](collection []T, keyFn func(T) K) map[K]T {
+	result := make(map[K]T, len(collection))
+	for _, v := range collection {
+		result[keyFn(v)] = v
+	}
+	return result
+}
+
+// Partition splits a slice into two: elements matching the predicate,
+// and elements that don't.
+func Partition[T any](collection []T, predicate func(T) bool) (matched []T, unmatched []T) {
+	matched = make([]T, 0)
+	unmatched = make([]T, 0)
+	for _, v := range collection {
+		if predicate(v) {
+			matched = append(matched, v)
+		} else {
+			unmatched = append(unmatched, v)
+		}
+	}
+	return matched, unmatched
+}
+
+// Chunk splits a slice into chunks of the specified size.
+func Chunk[T any](collection []T, size int) [][]T {
+	if size <= 0 {
+		return nil
+	}
+	chunks := make([][]T, 0, (len(collection)+size-1)/size)
+	for i := 0; i < len(collection); i += size {
+		end := i + size
+		if end > len(collection) {
+			end = len(collection)
+		}
+		chunks = append(chunks, collection[i:end])
+	}
+	return chunks
+}
+
+// Flatten merges a slice of slices into a single slice.
+func Flatten[T any](collections [][]T) []T {
+	total := 0
+	for _, s := range collections {
+		total += len(s)
+	}
+	result := make([]T, 0, total)
+	for _, s := range collections {
+		result = append(result, s...)
+	}
+	return result
+}
+
+// FlatMap applies iteratee to each element and flattens the result.
+func FlatMap[T any, U any](collection []T, iteratee func(T) []U) []U {
+	result := make([]U, 0)
+	for _, v := range collection {
+		result = append(result, iteratee(v)...)
+	}
+	return result
+}
+
+// Compact removes zero-value elements from a slice.
+func Compact[T comparable](collection []T) []T {
+	var zero T
+	result := make([]T, 0, len(collection))
+	for _, v := range collection {
+		if v != zero {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// Reverse returns a new slice with elements in reverse order.
+func Reverse[T any](collection []T) []T {
+	result := make([]T, len(collection))
+	for i, v := range collection {
+		result[len(collection)-1-i] = v
+	}
+	return result
+}
+
+// Without returns a slice excluding the specified values.
+func Without[T comparable](collection []T, exclude ...T) []T {
+	excludeSet := make(map[T]struct{}, len(exclude))
+	for _, v := range exclude {
+		excludeSet[v] = struct{}{}
+	}
+	result := make([]T, 0, len(collection))
+	for _, v := range collection {
+		if _, skip := excludeSet[v]; !skip {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// Intersect returns elements that exist in both slices.
+func Intersect[T comparable](list1 []T, list2 []T) []T {
+	set := make(map[T]struct{}, len(list2))
+	for _, v := range list2 {
+		set[v] = struct{}{}
+	}
+	result := make([]T, 0)
+	for _, v := range list1 {
+		if _, exists := set[v]; exists {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// Difference returns elements in list1 that are NOT in list2.
+func Difference[T comparable](list1 []T, list2 []T) []T {
+	set := make(map[T]struct{}, len(list2))
+	for _, v := range list2 {
+		set[v] = struct{}{}
+	}
+	result := make([]T, 0)
+	for _, v := range list1 {
+		if _, exists := set[v]; !exists {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// Union returns all unique elements from multiple slices.
+func Union[T comparable](lists ...[]T) []T {
+	seen := make(map[T]struct{})
+	result := make([]T, 0)
+	for _, list := range lists {
+		for _, v := range list {
+			if _, exists := seen[v]; !exists {
+				seen[v] = struct{}{}
+				result = append(result, v)
+			}
+		}
+	}
+	return result
+}
+
+// Count returns the number of elements equal to the given value.
+func Count[T comparable](collection []T, value T) int {
+	count := 0
+	for _, v := range collection {
+		if v == value {
+			count++
+		}
+	}
+	return count
+}
+
+// CountBy returns the number of elements matching the predicate.
+func CountBy[T any](collection []T, predicate func(T) bool) int {
+	count := 0
+	for _, v := range collection {
+		if predicate(v) {
+			count++
+		}
+	}
+	return count
+}
+
 // Min returns the minimum value. Returns zero value if empty.
 func Min[T cmp.Ordered](collection []T) T {
 	if len(collection) == 0 {
@@ -520,7 +456,6 @@ func MinIndex[T cmp.Ordered](collection []T) (T, int) {
 
 // MinBy returns the minimum element using a comparison function.
 // comparison(a, b) should return true when a < b.
-// Returns zero value if empty.
 func MinBy[T any](collection []T, comparison func(a, b T) bool) T {
 	if len(collection) == 0 {
 		var zero T
@@ -537,7 +472,6 @@ func MinBy[T any](collection []T, comparison func(a, b T) bool) T {
 
 // MinIndexBy returns the minimum element and its index using a comparison function.
 // comparison(a, b) should return true when a < b.
-// Returns (zero, -1) if empty.
 func MinIndexBy[T any](collection []T, comparison func(a, b T) bool) (T, int) {
 	if len(collection) == 0 {
 		var zero T
@@ -588,7 +522,6 @@ func MaxIndex[T cmp.Ordered](collection []T) (T, int) {
 
 // MaxBy returns the maximum element using a comparison function.
 // comparison(a, b) should return true when a > b.
-// Returns zero value if empty.
 func MaxBy[T any](collection []T, comparison func(a, b T) bool) T {
 	if len(collection) == 0 {
 		var zero T
@@ -605,7 +538,6 @@ func MaxBy[T any](collection []T, comparison func(a, b T) bool) T {
 
 // MaxIndexBy returns the maximum element and its index using a comparison function.
 // comparison(a, b) should return true when a > b.
-// Returns (zero, -1) if empty.
 func MaxIndexBy[T any](collection []T, comparison func(a, b T) bool) (T, int) {
 	if len(collection) == 0 {
 		var zero T
@@ -656,6 +588,45 @@ func LatestBy[T any](collection []T, timeFn func(T) time.Time) T {
 	return latest
 }
 
+// Every returns true if all elements match the predicate.
+func Every[T any](collection []T, predicate func(T) bool) bool {
+	for _, v := range collection {
+		if !predicate(v) {
+			return false
+		}
+	}
+	return true
+}
+
+// Some returns true if at least one element matches the predicate.
+func Some[T any](collection []T, predicate func(T) bool) bool {
+	for _, v := range collection {
+		if predicate(v) {
+			return true
+		}
+	}
+	return false
+}
+
+// None returns true if no element matches the predicate.
+func None[T any](collection []T, predicate func(T) bool) bool {
+	for _, v := range collection {
+		if predicate(v) {
+			return false
+		}
+	}
+	return true
+}
+
+// First returns the first element and true, or zero value and false if empty.
+func First[T any](collection []T) (T, bool) {
+	if len(collection) == 0 {
+		var zero T
+		return zero, false
+	}
+	return collection[0], true
+}
+
 // FirstOrEmpty returns the first element, or zero value if the slice is empty.
 func FirstOrEmpty[T any](collection []T) T {
 	if len(collection) == 0 {
@@ -663,6 +634,15 @@ func FirstOrEmpty[T any](collection []T) T {
 		return zero
 	}
 	return collection[0]
+}
+
+// Last returns the last element and true, or zero value and false if empty.
+func Last[T any](collection []T) (T, bool) {
+	if len(collection) == 0 {
+		var zero T
+		return zero, false
+	}
+	return collection[len(collection)-1], true
 }
 
 // LastOrEmpty returns the last element, or zero value if the slice is empty.
