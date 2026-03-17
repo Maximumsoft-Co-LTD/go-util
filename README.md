@@ -285,18 +285,6 @@ go-util/
 
 ---
 
-## Dependencies
-
-| Dependency | เหตุผล |
-|---|---|
-| `github.com/golang-jwt/jwt/v5` | JWT signing/validation |
-
-functions อื่นทั้งหมด **ไม่มี external dependency** — ใช้เฉพาะ Go standard library
-
-**รวม: 97 functions**
-
----
-
 ## License
 
 Internal use — Maximumsoft Co., LTD.
