@@ -918,6 +918,33 @@ fmt.Println(claims["username"]) // "admin"
 
 ---
 
+## Firebase RTDB client — `firebase/rtdb`
+
+```go
+import "github.com/Maximumsoft-Co-LTD/go-util/firebase/rtdb"
+```
+
+REST client สำหรับ Firebase Realtime Database ที่แนบ `Authorization: Bearer <Google OAuth access token>` จาก Application Default Credentials (GKE Workload Identity / WIF `external_account` JSON / key file) — scope `userinfo.email` + `firebase.database`. ที่มา: Firebase leak 2026 / impl-p1-withdraw-rtdb (ปิด public write ของ RTDB).
+
+| env | ค่า |
+|---|---|
+| `FIREBASE_RTDB_AUTH` | `off` (default, ส่งแบบเดิมไม่มี header) · `prefer` (มี token = แนบ, ไม่มี = ส่งแบบเดิม + log `rtdb_token_unavailable` ≤1/นาที) · `require` (ไม่มี token = ไม่ส่ง, `ErrNoToken`) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | ไฟล์ credential ของ ADC (ไม่ตั้งบน GKE WI) |
+
+```go
+c, err := rtdb.FromEnv(ctx, "FIREBASEURLMONITOR", "https://withdraw-monitor-new.firebaseio.com")
+status, body, err := c.Do(ctx, http.MethodPatch, []string{svc, svc + "_" + acc}, map[string]string{"status": "1"})
+segs, err := rtdb.SplitPath("svc/svc_123.json") // แปลง path แบบเดิมของ CallAPI
+```
+
+- base URL ต้องเป็น `https://<db>.firebaseio.com` หรือ `https://<db>.<region>.firebasedatabase.app` เท่านั้น (กัน token หลุดไป host อื่น) ; redirect ตามได้เฉพาะ RTDB host และไม่เปลี่ยน method
+- path segment ห้าม `. $ # [ ] /`, ว่าง, control char, >768 byte ; body เข้ารหัสด้วย `encoding/json`
+- ไม่ log token/body/path ; log key: `rtdb_auth_mode=<mode>`, `credentials_unavailable`, `rtdb_token_unavailable`, `rtdb_permission_denied status=<code>`
+- service repo ที่ดึง private module ใน CI ไม่ได้ ให้ **copy `client.go` + `client_test.go` ไปไว้ `internal/rtdb/` แบบไม่แก้** (แก้ที่นี่ก่อนเสมอ)
+- dependency: `golang.org/x/oauth2` เท่านั้น — โค้ดใช้ได้ตั้งแต่ Go 1.18; pin x/oauth2 ตาม `go` directive ของ repo ปลายทาง: 1.18–1.22 → `v0.26.0`, 1.23 → `v0.30.0`, 1.24 → `v0.35.0`, 1.25 → `v0.36.0` (ห้าม `@latest` — v0.37+ ต้องการ go 1.26)
+
+---
+
 ## โครงสร้างโปรเจกต์
 
 ```
@@ -931,10 +958,11 @@ go-util/
 ├── time.go        # Time helpers (12 functions)
 ├── random.go      # Random & hashing (5 functions)
 ├── format.go      # Number formatting (2 functions)
-└── jwt.go         # JWT service
+├── jwt.go         # JWT service
+└── firebase/rtdb/ # Firebase RTDB REST client (package rtdb)
 ```
 
-**Package:** `goutil` — flat package, ไม่มี sub-folder
+**Package:** `goutil` (root) + sub-package `firebase/rtdb`
 
 ---
 
